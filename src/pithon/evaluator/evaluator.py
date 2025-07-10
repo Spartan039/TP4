@@ -249,3 +249,5 @@ class BreakException(Exception):
 class ContinueException(Exception):
     """Exception pour passer à l'itération suivante (continue)."""
     pass
+
+# test commit
