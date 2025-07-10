@@ -246,7 +246,7 @@ def _evaluate_subscript(node: PiSubscript, env: EnvFrame) -> EnvValue:
     else:
         raise TypeError("L'indexation n'est supportée que pour les listes, tuples et chaînes.")
 
-    
+
 def _evaluate_in(node: PiIn, env: EnvFrame) -> EnvValue:
     """Évalue l'opérateur 'in'."""
     container = evaluate_stmt(node.container, env)
@@ -262,12 +262,18 @@ def _evaluate_in(node: PiIn, env: EnvFrame) -> EnvValue:
         raise TypeError("'in' n'est supporté que pour les listes et chaînes.")
 
 def _evaluate_function_call(node: PiFunctionCall, env: EnvFrame) -> EnvValue:
-    """Évalue un appel de fonction (primitive ou définie par l'utilisateur)."""
+    """Évalue un appel de fonction (primitive, définie par l'utilisateur, ou constructeur de classe)."""
     func_val = evaluate_stmt(node.function, env)
     args = [evaluate_stmt(arg, env) for arg in node.args]
     # Fonction primitive
     if callable(func_val):
         return func_val(args)
+
+    # Constructeur de classe
+    if isinstance(func_val, VClassDef):
+        # Créer une nouvelle instance
+        instance = VObject(class_def=func_val, attributes={})
+
     # Fonction utilisateur
     if not isinstance(func_val, VFunctionClosure):
         raise TypeError("Tentative d'appel d'un objet non-fonction.")
