@@ -300,6 +300,12 @@ def _evaluate_function_call(node: PiFunctionCall, env: EnvFrame) -> EnvValue:
 
         return instance
 
+    # Méthode liée
+    if isinstance(func_val, VMethodClosure):
+        funcdef = func_val.function.funcdef
+        closure_env = func_val.function.closure_env
+        instance = func_val.instance
+
     # Fonction utilisateur
     if not isinstance(func_val, VFunctionClosure):
         raise TypeError("Tentative d'appel d'un objet non-fonction.")
