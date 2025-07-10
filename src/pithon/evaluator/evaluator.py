@@ -85,6 +85,22 @@ def evaluate_stmt(node: PiStatement, env: EnvFrame) -> EnvValue:
         obj.attributes[node.attr] = value
         return value
 
+    elif isinstance(node, PiAttribute):
+        obj = evaluate_stmt(node.object, env)
+        if not isinstance(obj, VObject):
+            raise TypeError(f"Impossible d'accéder à un attribut d'un objet de type {type(obj).__name__}")
+        
+        # Vérifier d'abord les attributs d'instance
+        if node.attr in obj.attributes:
+            return obj.attributes[node.attr]
+        
+        # Puis vérifier les méthodes de la classe
+        if node.attr in obj.class_def.methods:
+            method = obj.class_def.methods[node.attr]
+            return VMethodClosure(function=method, instance=obj)
+        
+        raise AttributeError(f"L'objet {obj.class_def.name} n'a pas d'attribut '{node.attr}'")
+    
     elif isinstance(node, PiIfThenElse):
         cond = evaluate_stmt(node.condition, env)
         cond = check_type(cond, VBool)
