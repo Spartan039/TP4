@@ -227,16 +227,26 @@ def _evaluate_subscript(node: PiSubscript, env: EnvFrame) -> EnvValue:
     # Indexation pour liste, tuple ou chaîne
     if isinstance(collection, VList):
         idx = check_type(index, VNumber)
-        return collection.value[int(idx.value)]
+        try:
+            return collection.value[int(idx.value)]
+        except IndexError:
+            raise IndexError("Index de liste hors limites")
     elif isinstance(collection, VTuple):
         idx = check_type(index, VNumber)
-        return collection.value[int(idx.value)]
+        try:
+            return collection.value[int(idx.value)]
+        except IndexError:
+            raise IndexError("Index de tuple hors limites")
     elif isinstance(collection, VString):
         idx = check_type(index, VNumber)
-        return VString(collection.value[int(idx.value)])
+        try:
+            return VString(collection.value[int(idx.value)])
+        except IndexError:
+            raise IndexError("Index de chaîne hors limites")
     else:
         raise TypeError("L'indexation n'est supportée que pour les listes, tuples et chaînes.")
 
+    
 def _evaluate_in(node: PiIn, env: EnvFrame) -> EnvValue:
     """Évalue l'opérateur 'in'."""
     container = evaluate_stmt(node.container, env)
