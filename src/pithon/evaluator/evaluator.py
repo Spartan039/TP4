@@ -313,6 +313,13 @@ def _evaluate_function_call(node: PiFunctionCall, env: EnvFrame) -> EnvValue:
         if len(funcdef.arg_names) > 0:
             call_env.insert(funcdef.arg_names[0], instance)
 
+        # Ajouter les autres arguments
+        for i, arg_name in enumerate(funcdef.arg_names[1:], 1):
+            if i-1 < len(args):
+                call_env.insert(arg_name, args[i-1])
+            else:
+                raise TypeError(f"Argument manquant pour la méthode {funcdef.name}: {arg_name}")
+
     # Fonction utilisateur
     if not isinstance(func_val, VFunctionClosure):
         raise TypeError("Tentative d'appel d'un objet non-fonction.")
