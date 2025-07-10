@@ -291,6 +291,15 @@ def _evaluate_function_call(node: PiFunctionCall, env: EnvFrame) -> EnvValue:
                 else:
                     raise TypeError(f"Argument manquant pour __init__: {arg_name}")
 
+            # Exécuter __init__
+            try:
+                for stmt in init_method.funcdef.body:
+                    evaluate_stmt(stmt, call_env)
+            except ReturnException:
+                pass  # __init__ peut retourner quelque chose, on l'ignore
+
+        return instance
+
     # Fonction utilisateur
     if not isinstance(func_val, VFunctionClosure):
         raise TypeError("Tentative d'appel d'un objet non-fonction.")
