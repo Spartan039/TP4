@@ -77,6 +77,14 @@ def evaluate_stmt(node: PiStatement, env: EnvFrame) -> EnvValue:
         insert(env, node.name, value)
         return value
 
+    elif isinstance(node, PiAttributeAssignment):
+        obj = evaluate_stmt(node.object, env)
+        if not isinstance(obj, VObject):
+            raise TypeError(f"Impossible d'assigner un attribut à un objet de type {type(obj).__name__}")
+        value = evaluate_stmt(node.value, env)
+        obj.attributes[node.attr] = value
+        return value
+    
     elif isinstance(node, PiIfThenElse):
         cond = evaluate_stmt(node.condition, env)
         cond = check_type(cond, VBool)
