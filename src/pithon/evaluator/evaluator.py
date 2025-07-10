@@ -306,6 +306,13 @@ def _evaluate_function_call(node: PiFunctionCall, env: EnvFrame) -> EnvValue:
         closure_env = func_val.function.closure_env
         instance = func_val.instance
 
+        # Créer l'environnement d'appel
+        call_env = EnvFrame(parent=closure_env)
+
+        # Le premier argument est 'self'
+        if len(funcdef.arg_names) > 0:
+            call_env.insert(funcdef.arg_names[0], instance)
+
     # Fonction utilisateur
     if not isinstance(func_val, VFunctionClosure):
         raise TypeError("Tentative d'appel d'un objet non-fonction.")
