@@ -140,6 +140,23 @@ def evaluate_stmt(node: PiStatement, env: EnvFrame) -> EnvValue:
         insert(env, node.name, closure)
         return VNone(value=None)
 
+    elif isinstance(node, PiClassDef):
+        # Créer un environnement pour la classe
+        class_env = EnvFrame(parent=env)
+        
+        # Évaluer les méthodes dans l'environnement de la classe
+        methods = {}
+        for method in node.methods:
+            method_closure = VFunctionClosure(method, class_env)
+            methods[method.name] = method_closure
+        
+        # Créer la définition de classe
+        class_def = VClassDef(name=node.name, methods=methods)
+        
+        # Insérer la classe dans l'environnement
+        insert(env, node.name, class_def)
+        return VNone(value=None)
+
     elif isinstance(node, PiReturn):
         value = evaluate_stmt(node.value, env)
         raise ReturnException(value)
