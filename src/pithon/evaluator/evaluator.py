@@ -18,13 +18,16 @@ def initial_env() -> EnvFrame:
     env.vars.update(get_primitive_dict())
     return env
 
+
 def lookup(env: EnvFrame, name: str) -> EnvValue:
     """Recherche une variable dans l'environnement."""
     return env.lookup(name)
 
+
 def insert(env: EnvFrame, name: str, value: EnvValue) -> None:
     """Insère une variable dans l'environnement."""
     env.insert(name, value)
+
 
 def evaluate(node: PiProgram, env: EnvFrame) -> EnvValue:
     """Évalue un programme ou une liste d'instructions."""
@@ -37,6 +40,7 @@ def evaluate(node: PiProgram, env: EnvFrame) -> EnvValue:
         return evaluate_stmt(node, env)
     else:
         raise TypeError(f"Type de nœud non supporté : {type(node)}")
+
 
 def evaluate_stmt(node: PiStatement, env: EnvFrame) -> EnvValue:
     """Évalue une instruction ou expression Pithon."""
@@ -89,18 +93,18 @@ def evaluate_stmt(node: PiStatement, env: EnvFrame) -> EnvValue:
         obj = evaluate_stmt(node.object, env)
         if not isinstance(obj, VObject):
             raise TypeError(f"Impossible d'accéder à un attribut d'un objet de type {type(obj).__name__}")
-        
+
         # Vérifier d'abord les attributs d'instance
         if node.attr in obj.attributes:
             return obj.attributes[node.attr]
-        
+
         # Puis vérifier les méthodes de la classe
         if node.attr in obj.class_def.methods:
             method = obj.class_def.methods[node.attr]
             return VMethodClosure(function=method, instance=obj)
-        
+
         raise AttributeError(f"L'objet {obj.class_def.name} n'a pas d'attribut '{node.attr}'")
-    
+
     elif isinstance(node, PiIfThenElse):
         cond = evaluate_stmt(node.condition, env)
         cond = check_type(cond, VBool)
@@ -112,12 +116,12 @@ def evaluate_stmt(node: PiStatement, env: EnvFrame) -> EnvValue:
         operand = evaluate_stmt(node.operand, env)
         # Vérifie le type pour l'opérateur 'not'
         _check_valid_piandor_type(operand)
-        return VBool(not operand.value) # type: ignore
+        return VBool(not operand.value)  # type: ignore
 
     elif isinstance(node, PiAnd):
         left = evaluate_stmt(node.left, env)
         _check_valid_piandor_type(left)
-        if not left.value: # type: ignore
+        if not left.value:  # type: ignore
             return left
         right = evaluate_stmt(node.right, env)
         _check_valid_piandor_type(right)
@@ -126,7 +130,7 @@ def evaluate_stmt(node: PiStatement, env: EnvFrame) -> EnvValue:
     elif isinstance(node, PiOr):
         left = evaluate_stmt(node.left, env)
         _check_valid_piandor_type(left)
-        if left.value: # type: ignore
+        if left.value:  # type: ignore
             return left
         right = evaluate_stmt(node.right, env)
         _check_valid_piandor_type(right)
@@ -143,16 +147,16 @@ def evaluate_stmt(node: PiStatement, env: EnvFrame) -> EnvValue:
     elif isinstance(node, PiClassDef):
         # Créer un environnement pour la classe
         class_env = EnvFrame(parent=env)
-        
+
         # Évaluer les méthodes dans l'environnement de la classe
         methods = {}
         for method in node.methods:
             method_closure = VFunctionClosure(method, class_env)
             methods[method.name] = method_closure
-        
+
         # Créer la définition de classe
         class_def = VClassDef(name=node.name, methods=methods)
-        
+
         # Insérer la classe dans l'environnement
         insert(env, node.name, class_def)
         return VNone(value=None)
@@ -182,10 +186,12 @@ def evaluate_stmt(node: PiStatement, env: EnvFrame) -> EnvValue:
     else:
         raise TypeError(f"Type de nœud non supporté : {type(node)}")
 
+
 def _check_valid_piandor_type(obj):
     """Vérifie que le type est valide pour 'and'/'or'."""
     if not isinstance(obj, VBool | VNumber | VString | VNone | VList | VTuple):
         raise TypeError(f"Type non supporté pour l'opérateur 'and': {type(obj).__name__}")
+
 
 def _evaluate_while(node: PiWhile, env: EnvFrame) -> EnvValue:
     """Évalue une boucle while."""
@@ -203,6 +209,7 @@ def _evaluate_while(node: PiWhile, env: EnvFrame) -> EnvValue:
             continue
     return last_value
 
+
 def _evaluate_for(node: PiFor, env: EnvFrame) -> EnvValue:
     """Évalue une boucle for."""
     iterable_val = evaluate_stmt(node.iterable, env)
@@ -219,6 +226,7 @@ def _evaluate_for(node: PiFor, env: EnvFrame) -> EnvValue:
         except ContinueException:
             continue
     return last_value
+
 
 def _evaluate_subscript(node: PiSubscript, env: EnvFrame) -> EnvValue:
     """Évalue une opération d'indexation (subscript)."""
@@ -260,6 +268,7 @@ def _evaluate_in(node: PiIn, env: EnvFrame) -> EnvValue:
             return VBool(False)
     else:
         raise TypeError("'in' n'est supporté que pour les listes et chaînes.")
+
 
 def _evaluate_function_call(node: PiFunctionCall, env: EnvFrame) -> EnvValue:
     """Évalue un appel de fonction (primitive, définie par l'utilisateur, ou constructeur de classe)."""
@@ -369,14 +378,17 @@ def _evaluate_function_call(node: PiFunctionCall, env: EnvFrame) -> EnvValue:
 
     raise TypeError(f"Tentative d'appel d'un objet non-fonction de type {type(func_val).__name__}")
 
+
 class ReturnException(Exception):
     """Exception pour retourner une valeur depuis une fonction."""
     def __init__(self, value):
         self.value = value
 
+
 class BreakException(Exception):
     """Exception pour sortir d'une boucle (break)."""
     pass
+
 
 class ContinueException(Exception):
     """Exception pour passer à l'itération suivante (continue)."""
