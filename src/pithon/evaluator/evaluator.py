@@ -327,6 +327,16 @@ def _evaluate_function_call(node: PiFunctionCall, env: EnvFrame) -> EnvValue:
         elif len(args) > len(funcdef.arg_names) - 1:
             raise TypeError("Trop d'arguments pour la méthode.")
 
+        # Exécuter la méthode
+        result = VNone(value=None)
+        try:
+            for stmt in funcdef.body:
+                result = evaluate_stmt(stmt, call_env)
+        except ReturnException as ret:
+            return ret.value
+
+        return result
+
     # Fonction utilisateur
     if not isinstance(func_val, VFunctionClosure):
         raise TypeError("Tentative d'appel d'un objet non-fonction.")
