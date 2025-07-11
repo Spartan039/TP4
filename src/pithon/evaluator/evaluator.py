@@ -320,6 +320,13 @@ def _evaluate_function_call(node: PiFunctionCall, env: EnvFrame) -> EnvValue:
             else:
                 raise TypeError(f"Argument manquant pour la méthode {funcdef.name}: {arg_name}")
 
+        # Gérer varargs si nécessaire
+        if funcdef.vararg:
+            varargs = VList(args[len(funcdef.arg_names)-1:])
+            call_env.insert(funcdef.vararg, varargs)
+        elif len(args) > len(funcdef.arg_names) - 1:
+            raise TypeError("Trop d'arguments pour la méthode.")
+
     # Fonction utilisateur
     if not isinstance(func_val, VFunctionClosure):
         raise TypeError("Tentative d'appel d'un objet non-fonction.")
