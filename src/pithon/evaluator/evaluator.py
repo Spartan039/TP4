@@ -338,28 +338,36 @@ def _evaluate_function_call(node: PiFunctionCall, env: EnvFrame) -> EnvValue:
         return result
 
     # Fonction utilisateur
-    if not isinstance(func_val, VFunctionClosure):
-        raise TypeError("Tentative d'appel d'un objet non-fonction.")
-    funcdef = func_val.funcdef
-    closure_env = func_val.closure_env
-    call_env = EnvFrame(parent=closure_env)
-    for i, arg_name in enumerate(funcdef.arg_names):
-        if i < len(args):
-            call_env.insert(arg_name, args[i])
-        else:
-            raise TypeError("Argument manquant pour la fonction.")
-    if funcdef.vararg:
-        varargs = VList(args[len(funcdef.arg_names):])
-        call_env.insert(funcdef.vararg, varargs)
-    elif len(args) > len(funcdef.arg_names):
-        raise TypeError("Trop d'arguments pour la fonction.")
-    result = VNone(value=None)
-    try:
-        for stmt in funcdef.body:
-            result = evaluate_stmt(stmt, call_env)
-    except ReturnException as ret:
-        return ret.value
-    return result
+    if isinstance(func_val, VFunctionClosure):
+        funcdef = func_val.funcdef
+        closure_env = func_val.closure_env
+        call_env = EnvFrame(parent=closure_env)
+
+        # Ajouter les arguments
+        for i, arg_name in enumerate(funcdef.arg_names):
+            if i < len(args):
+                call_env.insert(arg_name, args[i])
+            else:
+                raise TypeError(f"Argument manquant pour la fonction {funcdef.name}: {arg_name}")
+
+        # Gérer varargs
+        if funcdef.vararg:
+            varargs = VList(args[len(funcdef.arg_names):])
+            call_env.insert(funcdef.vararg, varargs)
+        elif len(args) > len(funcdef.arg_names):
+            raise TypeError("Trop d'arguments pour la fonction.")
+
+        # Exécuter la fonction
+        result = VNone(value=None)
+        try:
+            for stmt in funcdef.body:
+                result = evaluate_stmt(stmt, call_env)
+        except ReturnException as ret:
+            return ret.value
+
+        return result
+
+    raise TypeError(f"Tentative d'appel d'un objet non-fonction de type {type(func_val).__name__}")
 
 class ReturnException(Exception):
     """Exception pour retourner une valeur depuis une fonction."""
